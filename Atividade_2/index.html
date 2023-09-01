@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avião e Míssil</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const airplane = new Image();
+        airplane.src = "airplane.png"; // Coloque o caminho da imagem do avião
+
+        const missile = new Image();
+        missile.src = "missile.png"; // Coloque o caminho da imagem do míssil
+
+        const explosion = new Image();
+        explosion.src = "explosion.png"; // Coloque o caminho da imagem da explosão
+
+        const planeWidth = 100;
+        const planeHeight = 100;
+        let planeX = canvas.width / 2;
+        let planeY = canvas.height / 2;
+
+        const missileWidth = 80;
+        const missileHeight = 70;
+        let missileX = canvas.width - missileWidth; // Posiciona o míssil na parte inferior direita da tela
+        let missileY = canvas.height - missileHeight;
+        let missileSpeed = 15;
+        let missileLaunched = false;
+
+        canvas.addEventListener("mousemove", (event) => {
+            planeX = event.clientX - planeWidth / 2;
+            planeY = event.clientY - planeHeight / 2;
+        });
+
+        canvas.addEventListener("contextmenu", (event) => {
+            event.preventDefault(); // Impede o menu de contexto padrão
+
+            missileX = canvas.width - missileWidth;
+            missileY = canvas.height - missileHeight;
+            missileLaunched = true;
+        });
+
+        const explosionDuration = 100; // Número de frames para manter a explosão visível
+        let explosionFrames = 0;
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (missileLaunched) {
+                const angle = Math.atan2(planeY - missileY, planeX - missileX);
+
+                ctx.save(); // Salva o estado do contexto
+                ctx.translate(missileX + missileWidth / 2, missileY + missileHeight / 2); // Move o contexto para o centro do míssil
+                ctx.rotate(angle + Math.PI / 2); // Aplica a rotação (adicionando Math.PI / 2 para ajustar a orientação)
+                ctx.drawImage(missile, -missileWidth / 2, -missileHeight / 2, missileWidth, missileHeight); // Desenha o míssil no centro rotacionado
+                ctx.restore(); // Restaura o estado do contexto
+
+                missileX += missileSpeed * Math.cos(angle);
+                missileY += missileSpeed * Math.sin(angle);
+
+                if (
+                    missileX < planeX + planeWidth &&
+                    missileX + missileWidth > planeX &&
+                    missileY < planeY + planeHeight &&
+                    missileY + missileHeight > planeY
+                ) {
+                    missileLaunched = false;
+                    explosionFrames = explosionDuration;
+                }
+            }
+
+            else {
+                ctx.drawImage(missile, missileX, missileY, missileWidth, missileHeight);
+            }
+
+            if (explosionFrames > 0) {
+                ctx.drawImage(explosion, planeX, planeY, planeWidth, planeHeight);
+                explosionFrames--;
+            } else {
+                ctx.drawImage(airplane, planeX, planeY, planeWidth, planeHeight);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        airplane.onload = animate;
+    </script>
+</body>
+</html>
