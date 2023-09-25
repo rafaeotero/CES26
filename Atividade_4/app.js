@@ -1,51 +1,51 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-
+const bodyParser = require('body-parser');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000; // Porta do servidor
 
-// Configuração para lidar com o upload de arquivos
+// Configuração do Multer para upload de arquivos
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Diretório onde os arquivos serão armazenados
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Diretório onde os arquivos serão salvos
   },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Nome do arquivo com timestamp
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Nome original do arquivo
   },
 });
+const upload = multer({ storage: storage });
 
-const upload = multer({ storage });
+// Configuração do Body Parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-// Configuração para permitir arquivos estáticos
+// Rota para exibir arquivos estáticos (por exemplo, HTML, CSS, JS)
 app.use(express.static('public'));
 
-// Configuração para permitir análise de formulários POST
-app.use(express.urlencoded({ extended: true }));
-
-// Rota para lidar com formulário GET
-app.get('/form', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'form.html'));
+// Rota para processar dados de um formulário enviado via comando GET
+app.get('/formulario', (req, res) => {
+  const nome = req.query.nome;
+  const idade = req.query.idade;
+  // Faça o processamento dos dados aqui
+  res.send(`Nome: ${nome}, Idade: ${idade}`);
 });
 
-// Rota para lidar com formulário POST
-app.post('/submit', (req, res) => {
-  const { name, email } = req.body;
-  res.send(`Nome: ${name}, Email: ${email}`);
+// Rota para suportar uma aplicação AJAX
+app.get('/dados-json', (req, res) => {
+  const data = {
+    key1: 'valor1',
+    key2: 'valor2',
+  };
+  res.json(data); // Envia os dados em formato JSON
 });
 
-// Rota para lidar com upload de arquivo POST
-app.post('/upload', upload.single('file'), (req, res) => {
+// Rota para lidar com uploads de arquivos via comando POST
+app.post('/upload', upload.single('arquivo'), (req, res) => {
+  // 'arquivo' deve corresponder ao nome do campo do formulário de upload
   res.send('Arquivo enviado com sucesso!');
 });
 
-// Rota AJAX para retornar dados JSON
-app.get('/api/data', (req, res) => {
-  const data = { message: 'Dados em JSON' };
-  res.json(data);
-});
-
-// Inicie o servidor
+// Inicia o servidor
 app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+  console.log(`Servidor está rodando em http://localhost:${port}`);
 });
