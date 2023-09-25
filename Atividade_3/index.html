@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor de Árvore DOM</title>
+    <style>
+        .selected {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <div id="tree">
+        <ul>
+            <li>Elemento 1</li>
+            <li>Elemento 2
+                <ul>
+                    <li>Subelemento 1
+                        <ul>
+                            <li>Subsub 1</li>
+                        </ul>
+                    </li>
+                    <li>Subelemento 2</li>
+                </ul>
+            </li>
+            <li>Elemento 3</li>
+        </ul>
+    </div>
+    
+    <!-- Botão de remover inicialmente oculto -->
+    <button id="remove" style="display: none;">Remover</button>
+    
+    <!-- Botão "Adicionar" -->
+    <button id="add" style="display: none;">Adicionar</button>
+    <input type="text" id="newChildName" style="display: none;" placeholder="Nome do novo filho">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let lastSelectedElement = null; // Variável para armazenar o último elemento selecionado
+            
+            // Função para destacar elementos ao clicar
+            $('#tree li').click(function(event) {
+                // Evitar que o evento de clique propague para elementos pai
+                event.stopPropagation();
+                
+                // Remover a classe 'selected' de todos os elementos
+                $('#tree li').removeClass('selected');
+                
+                // Adicionar a classe 'selected' ao elemento clicado
+                $(this).addClass('selected');
+                
+                // Atualizar o último elemento selecionado
+                lastSelectedElement = $(this);
+                
+                // Exibir o botão de remover quando um item é selecionado
+                $('#remove').css('display', 'inline-block');
+                
+                // Exibir o botão "Adicionar" e o campo de entrada de texto quando um item é selecionado
+                $('#add').css('display', 'inline-block');
+                $('#newChildName').css('display', 'inline-block');
+                
+                // Selecionar apenas os elementos descendentes diretos
+                $(this).children('ul').children('li').addClass('selected');
+            });
+            
+            // Função para adicionar um filho ao elemento selecionado
+            $('#add').click(function() {
+                const selectedElement = $('#tree .selected');
+                const newChildName = $('#newChildName').val();
+                
+                if (selectedElement.length > 0 && newChildName) {
+                    // Criar um novo elemento li com o nome fornecido
+                    const newChild = $('<li>' + newChildName + '</li>');
+                    
+                    // Verificar se o elemento selecionado possui uma lista de filhos (ul)
+                    if (selectedElement.children('ul').length > 0) {
+                        // Adicionar o novo elemento como filho do elemento selecionado
+                        selectedElement.children('ul').append(newChild);
+                    } else {
+                        // Criar uma lista de filhos (ul) e adicionar o novo elemento como filho
+                        const ul = $('<ul></ul>');
+                        ul.append(newChild);
+                        selectedElement.append(ul);
+                    }
+                    
+                    // Limpar o campo de entrada de texto
+                    $('#newChildName').val('');
+                    
+                    // Remover a seleção do elemento anteriormente selecionado
+                    selectedElement.removeClass('selected');
+                    
+                    // Selecionar apenas o novo elemento
+                    newChild.addClass('selected');
+                }
+            });
+            
+            // Função para remover o elemento selecionado
+            $('#remove').click(function() {
+                const selectedElement = $('#tree .selected');
+                
+                if (selectedElement.length > 0) {
+                    selectedElement.remove();
+                    
+                    // Ocultar o botão de remover após a remoção
+                    $('#remove').hide();
+                    $('#add').hide();
+                    $('#newChildName').hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
